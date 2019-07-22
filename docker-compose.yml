@@ -1,0 +1,44 @@
+version: "3"
+services:
+  db:
+    image: postgres:10.1
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    environment:
+      - "POSTGRES_USER=root"
+      - "POSTGRES_PASSWORD=password"
+    restart: always
+    user: root
+  pgadmin4:
+    image: dpage/pgadmin4:4.10
+    container_name: pgadmin4
+    ports:
+      - 80:80
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin/storage
+    environment:
+      PGADMIN_DEFAULT_EMAIL: root
+      PGADMIN_DEFAULT_PASSWORD: root
+    hostname: pgadmin4
+    restart: always
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8080:8080"
+    environment:
+      spring.datasource.url: "jdbc:postgresql://db:5432/sampledb"
+    depends_on:
+      - db
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/frontend
+    stdin_open: true
+    tty: true
